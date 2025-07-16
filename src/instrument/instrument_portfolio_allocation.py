@@ -1,3 +1,5 @@
+from logging import raiseExceptions
+
 import pandas as pd
 import logging
 from typing import Callable
@@ -10,21 +12,6 @@ logger = logging.getLogger('VaR_Calculation')
 class Instrument:
 
     @staticmethod
-    def _calculate_shift_return(df: pd.DataFrame, horizon_days: float, shift_function: Callable) -> pd.DataFrame:
-        """
-        Applies the shift logic over all rows of the instrument timeseries
-        :param df: instrument times series dataframe
-        :param horizon_days: days for which the return should be estimated
-        :param shift_function: the python callable used to calculate the shift
-        :return: instrument time series dataframe with new 'shifted_change' column
-        """
-        # the shifted value (row.iloc[1]) corresponds to the previous day's value
-        df['shifted_change'] = df.apply(lambda row: shift_function(time0_value=row.iloc[1],
-                                                                   time1_value=row.iloc[0],
-                                                                   horizon_days=horizon_days), axis=1)
-        return df
-
-    @staticmethod
     def _calculate_pnl_for_shift(df: pd.DataFrame, portfolio_value: float) -> pd.DataFrame:
         """
         Multiply the estimated daily return by the value of the instrument in the portfolio
@@ -32,9 +19,16 @@ class Instrument:
         :param portfolio_value: Value of the instrument in the portfolio
         :return: instrument time series dataframe with new 'pnl_vector' column
         """
-        df['pnl_vector'] = df['shifted_change'] * portfolio_value
+        try:
+            if 'shifted_change' not in df.columns or df['shifted_change'].isnull().any():
+                raise ValueError("'shifted_change' column is missing or having NaN value")
+            df['pnl_vector'] = df['shifted_change'] * portfolio_value
+            if 'pnl_vector' not in df.columns or df['pnl_vector'].isnull().any():
+                raise ValueError("'pnl_vector' is missing or contains NaN.")
+            return df
+        except ValueError as ve:
+            print(ve)
 
-        return df
 
     @staticmethod
     def _calculate_instrument_pnl_vector(instrument_timeseries: pd.DataFrame, portfolio_value: float,
@@ -47,10 +41,13 @@ class Instrument:
         :param horizon_days: number of days for which we estimate the return based on the one-day return
         :return: instrument_timeseries dataframe with new 'pnl_vector' column
         """
-        instrument_timeseries = DataProcessor.add_shifted_time_column_processing(instrument_timeseries)
-        instrument_timeseries = ReturnCalculator.calculate_return(instrument_timeseries, horizon_days=horizon_days,
-                                                                  shift_function=return_function)
-        return Instrument._calculate_pnl_for_shift(df=instrument_timeseries, portfolio_value=portfolio_value)
+        try:
+            instrument_timeseries = DataProcessor.add_shifted_time_column_processing(instrument_timeseries)
+            instrument_timeseries = ReturnCalculator.calculate_return(instrument_timeseries, horizon_days=horizon_days,
+                                                                      shift_function=return_function)
+            return Instrument._calculate_pnl_for_shift(df=instrument_timeseries, portfolio_value=portfolio_value)
+        except ValueError as ve:
+            print("'pnl_vector' is missing or contains NaN.")
     @staticmethod
     def calculate_instrument_pnl_vector(instrument_timeseries: pd.DataFrame, portfolio_value: float,
                                         return_function: Callable, horizon_days: float) -> pd.DataFrame:
@@ -63,4 +60,8 @@ class Instrument:
         :return: instrument_timeseries dataframe with new 'pnl_vector' column
         """
         df_instrument_pnl_vector = Instrument._calculate_instrument_pnl_vector(instrument_timeseries,portfolio_value,return_function,horizon_days)
+        if 'pnl_vector' not in df_instrument_pnl_vector:
+            raise TypeError("'pnl_vector' is missing or contains NaN.")
+        if df_instrument_pnl_vector['pnl_vector'].isnull().any():
+            raise  TypeError("Contains null or zero value")
         return df_instrument_pnl_vector

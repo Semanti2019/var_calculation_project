@@ -6,6 +6,7 @@ class ConfigRiskModel:
     FILE_NAME = "ccy_rates.txt"
     #Portfolio parameters
     HORIZON_DAYS = 260
+    REQUIRED_COLUMNS = {"ccy-1", "ccy-2"}
     PORTFOLIO_VALUE = {"ccy-1":153084.81,"ccy-2":95891.51}
     #Date parsing
     DATE_FORMAT = "%d/%m/%Y"
