@@ -1,5 +1,3 @@
-from logging import raiseExceptions
-
 import pandas as pd
 import logging
 from typing import Callable
@@ -12,7 +10,7 @@ logger = logging.getLogger('VaR_Calculation')
 class Instrument:
 
     @staticmethod
-    def _calculate_pnl_for_shift(df: pd.DataFrame, portfolio_value: float) -> pd.DataFrame:
+    def _calculate_pnl_for_shift(df: pd.DataFrame, portfolio_value: float) -> pd.DataFrame|None:
         """
         Multiply the estimated daily return by the value of the instrument in the portfolio
         :param df: instrument time series dataframe
@@ -32,7 +30,7 @@ class Instrument:
 
     @staticmethod
     def _calculate_instrument_pnl_vector(instrument_timeseries: pd.DataFrame, portfolio_value: float,
-                                         return_function: Callable, horizon_days: float) -> pd.DataFrame:
+                                         return_function: Callable, horizon_days: float) -> pd.DataFrame|None:
         """
         Calculates the PnL for the given portfolio given the historical returns found in the instrument time series
         :param instrument_timeseries: a dataframe with business date index containing instrument values on those days

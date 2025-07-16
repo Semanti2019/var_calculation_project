@@ -1,9 +1,7 @@
 import unittest
 import pandas as pd
 import numpy as np
-from typing import List, Tuple
 from src.returns.return_calculator import ReturnCalculator
-from unittest.mock import patch
 
 
 def mock_shift_function(time0_value, time1_value, horizon_days):
