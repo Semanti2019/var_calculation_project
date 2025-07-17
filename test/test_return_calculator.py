@@ -17,7 +17,6 @@ class TestReturnCalculator(unittest.TestCase):
         prices_1 = [100.0,98.0,96.0]
         self.df = pd.DataFrame({'price_t0': prices_0,'price_t1': prices_1}, index=dates)
         self.horizon_days = 1.0
-        # self.df['shifted_change'] = self.df['shifted_change'].pct_change().fillna(0) # dummy shift return
         self.portfolio_value = 1000000
 
     def test_valid_log_shift(self):
@@ -26,8 +25,6 @@ class TestReturnCalculator(unittest.TestCase):
         self.assertAlmostEqual(result_log_shift,expected_log_shift)
 
     def test_log_shift_invalid_timeseries(self):
-        # result_log_shift = ReturnCalculator.log_shift(0.0,110.0,10.0)
-        # expected_log_shift = np.exp(np.log(110.0 / 0.0) * np.sqrt(10.0)) - 1
         with self.assertRaises(ZeroDivisionError) :
             ReturnCalculator.log_shift(0.0,110.0,10.0)
         with self.assertRaises(ValueError) :

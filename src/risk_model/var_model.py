@@ -6,6 +6,7 @@ from src.instrument.instrument_portfolio_allocation import Instrument
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('VaR_Calculation')
 
+
 class VaRCalculator:
     try:
         @staticmethod
@@ -18,7 +19,7 @@ class VaRCalculator:
             :param total_pnl_vector: the series of historical returns for the instrument in the portfolio
             :return: float VaR value
             """
-            if not isinstance(total_pnl_vector,pd.Series):
+            if not isinstance(total_pnl_vector, pd.Series):
                 raise TypeError("Expected a pandas series for PnL vector")
             sorted_returns = total_pnl_vector.sort_values()
             return sorted_returns.iloc[1] * 0.4 + sorted_returns.iloc[2] * 0.6
@@ -42,18 +43,19 @@ class VaRCalculator:
             """
             if not calculation_config:
                 raise ValueError("Calculation_config is empty")
-            if not isinstance(calculation_config,list) and all(isinstance(item,tuple) for item in calculation_config):
+            if not isinstance(calculation_config, list) and all(isinstance(item, tuple) for item in calculation_config):
                 raise ValueError("Input config must be list of 4 element tuples")
             logger.info(f'Received calculation config containing {len(calculation_config)} instruments')
             for entry in calculation_config:
                 if len(entry) != 4:
                     raise ValueError(f"Each config entry must be tuple of 4 elements: got {len(entry)}")
-                if not isinstance(entry[0],pd.DataFrame):
+                if not isinstance(entry[0], pd.DataFrame):
                     raise TypeError("Timeseries data must be a pandas dataframe")
             portfolio_total_pnl_vector = pd.Series(index=calculation_config[0][0].index, data=0)
             for (timeseries, _horizon_days, portfolio_value, return_function) in calculation_config:
-                logger.info(f'calculating return pnls for instrument using N={_horizon_days}, portfolio_value={portfolio_value}'
-                            f', return_function={return_function.__name__}')
+                logger.info(
+                    f'calculating return pnls for instrument using N={_horizon_days}, portfolio_value={portfolio_value}'
+                    f', return_function={return_function.__name__}')
                 component_pnl = Instrument.calculate_instrument_pnl_vector(instrument_timeseries=timeseries,
                                                                            portfolio_value=portfolio_value,
                                                                            return_function=return_function,

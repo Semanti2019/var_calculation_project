@@ -14,6 +14,7 @@ class DataProcessor:
             if df.empty or df.shape[1] == 0:
                 raise ValueError("Input dataframe cannot be empty")
             df['time_shift'] = df[df.columns[0]].shift(-1)
+            df.dropna(inplace=True)
             return df
 
         @staticmethod
